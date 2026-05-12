@@ -8,9 +8,15 @@
 [![Async](https://img.shields.io/badge/stack-asyncio-5865F2?style=flat-square)](https://docs.python.org/3/library/asyncio.html)
 [![Env](https://img.shields.io/badge/config-.env-222?style=flat-square)](.env.example)
 
-[В двух словах](#about) · [Быстрый старт](#quickstart) · [Структура](#layout) · [Переменные](#env) · [Примеры](#examples)
+[В двух словах](#about) · [Gherkin‑контур](#llm-gherkin) · [Быстрый старт](#quickstart) · [Структура](#layout) · [Переменные](#env) · [Примеры](#examples)
 
 </div>
+
+<a id="llm-gherkin"></a>
+
+> [!TIP]
+> **Прогноз движения рынка — через Gherkin‑контракт, а не «простыню» промпта.**  
+> Модели задаётся сценарий в духе **Given / When / Then**: что принимаем за данные и рамки, при каком условии допускается вывод, какие свойства ответа обязаны выполняться. Так сужается зона догадок, проще ловить ошибки и сопоставлять ответ с фактами — **без переобучения весов**, за счёт явной проверяемости.
 
 ---
 
