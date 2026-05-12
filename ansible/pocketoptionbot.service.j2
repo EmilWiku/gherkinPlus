@@ -1,0 +1,19 @@
+[Unit]
+Description=PocketOption M2 Bot
+After=network.target
+
+[Service]
+Type=simple
+User={{ bot_user }}
+WorkingDirectory={{ bot_dir }}
+Environment="PATH={{ bot_dir }}/venv/bin"
+Environment="PYTHONPATH={{ bot_dir }}/bot_app:{{ bot_dir }}/PocketOptionAPI"
+ExecStart={{ bot_dir }}/venv/bin/python3 {{ bot_dir }}/versions/main_v3.py
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
+

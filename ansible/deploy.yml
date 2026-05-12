@@ -1,0 +1,115 @@
+---
+- name: Deploy PocketOption Bot to Linux Server
+  hosts: pocketoption_servers
+  become: yes
+  gather_facts: yes
+
+  vars:
+    bot_user: root
+    bot_dir: /root/pocketoptionbot
+    bot_service: pocketoptionbot
+
+  tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: Install system packages
+      apt:
+        name:
+          - python3
+          - python3-pip
+          - python3-venv
+          - screen
+          - git
+          - build-essential
+        state: present
+
+    - name: Create bot directory
+      file:
+        path: "{{ bot_dir }}"
+        state: directory
+        mode: '0755'
+
+    - name: Copy bot_app package
+      copy:
+        src: "{{ playbook_dir }}/../bot_app/"
+        dest: "{{ bot_dir }}/bot_app/"
+        mode: '0644'
+
+    - name: Copy versions directory
+      copy:
+        src: "{{ playbook_dir }}/../versions/"
+        dest: "{{ bot_dir }}/versions/"
+        mode: '0644'
+
+    - name: Copy PocketOptionAPI directory
+      copy:
+        src: "{{ playbook_dir }}/../PocketOptionAPI/"
+        dest: "{{ bot_dir }}/PocketOptionAPI/"
+        mode: '0644'
+
+    - name: Copy visualization_lib directory
+      copy:
+        src: "{{ playbook_dir }}/../visualization_lib/"
+        dest: "{{ bot_dir }}/visualization_lib/"
+        mode: '0644'
+      ignore_errors: yes
+
+    - name: Copy server Python requirements
+      copy:
+        src: "{{ playbook_dir }}/../requirements/server.txt"
+        dest: "{{ bot_dir }}/requirements_server.txt"
+        mode: '0644'
+
+    - name: Create Python virtual environment
+      command: python3 -m venv {{ bot_dir }}/venv
+      args:
+        creates: "{{ bot_dir }}/venv/bin/activate"
+
+    - name: Upgrade pip
+      pip:
+        name: pip
+        state: latest
+        virtualenv: "{{ bot_dir }}/venv"
+        executable: "{{ bot_dir }}/venv/bin/pip"
+
+    - name: Install Python dependencies
+      pip:
+        requirements: "{{ bot_dir }}/requirements_server.txt"
+        virtualenv: "{{ bot_dir }}/venv"
+        executable: "{{ bot_dir }}/venv/bin/pip"
+
+    - name: Create systemd service file
+      template:
+        src: pocketoptionbot.service.j2
+        dest: /etc/systemd/system/{{ bot_service }}.service
+        mode: '0644'
+      notify: reload systemd
+
+    - name: Enable and start bot service
+      systemd:
+        name: "{{ bot_service }}"
+        enabled: yes
+        state: started
+        daemon_reload: yes
+
+    - name: Wait for service to start
+      wait_for:
+        timeout: 10
+      register: service_status
+
+    - name: Check bot service status
+      command: systemctl status {{ bot_service }} --no-pager
+      register: bot_status
+      changed_when: false
+
+    - name: Display bot status
+      debug:
+        msg: "{{ bot_status.stdout_lines }}"
+
+  handlers:
+    - name: reload systemd
+      systemd:
+        daemon_reload: yes
